@@ -20,7 +20,7 @@ y_offset=160
 im_opts='-quality 95 -unsharp 0x1'
 if [ ! -d ${tmp_dir} ]; then
     mkdir -p ${tmp_dir}
-    find ${in_dir} -type f | sort | tail -n +600 | head -n 160 | \
+    find ${in_dir} -type f | sort | \
         parallel --bar \
             convert {} ${im_opts} \
                 -resize ${w}x${w}^ \
