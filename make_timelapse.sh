@@ -1,17 +1,42 @@
 #!/bin/bash
+# usage: $0 <directory with images>
 
-FPS=25
+in_dir=$(basename $1)
+tmp_dir=${in_dir}-${h}p
 
-indir=$(basename $1)
-tmpdir=${indir}_resized
+w=1920
+h=1080
 
-mkdir -p ${tmpdir}
-i=1
-for file in $(ls -1 ${indir}); do
-    convert ${indir}/${file} -resize 640x640^ -gravity center -crop 640x480+0+0 +repage ${tmpdir}/$(printf "%05d" ${i}).jpg
-    echo $(printf "%05d" ${i})
-    i=$((1+$i))
-    [ $i -eq 10 ] && break
-done
+# GO Pro
+# fps=25
+# gravity=North
+# yoffset=0
 
-ffmpeg -r ${FPS} -start_number 1 -i ${tmpdir}/%05d.jpg -c:v libx264 ${indir}.mp4
+# Lumix
+fps=16
+gravity=Center
+y_offset=160
+
+im_opts='-quality 95 -unsharp 0x1'
+if [ ! -d ${tmp_dir} ]; then
+    mkdir -p ${tmp_dir}
+    find ${in_dir} -type f | sort | tail -n +600 | head -n 160 | \
+        parallel --bar \
+            convert {} ${im_opts} \
+                -resize ${w}x${w}^ \
+                -gravity ${gravity} \
+                -crop ${w}x${h}+0+${y_offset} \
+                +repage \
+                ${tmp_dir}/{= '$_=sprintf("%05d",seq())' =}.jpg
+fi
+
+# High quality
+fm_opts='-preset slow -crf 18 -x264-params me=umh:merange=24:trellis=1:level=4.1:ref=5'
+# Fast
+# fm_opts='-preset veryfast'
+ffmpeg -r ${fps} \
+    -start_number 1 \
+    -i ${tmp_dir}/%05d.jpg \
+    -c:v libx264 \
+    ${fm_opts} \
+    ${in_dir}.mp4
