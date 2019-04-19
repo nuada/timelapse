@@ -1,11 +1,11 @@
 #!/bin/bash
 # usage: $0 <directory with images>
 
-in_dir=$(basename $1)
-tmp_dir=${in_dir}-${h}p
-
 w=1920
 h=1080
+
+in_dir=$(basename $1)
+tmp_dir=${in_dir}-${h}p
 
 # GO Pro
 # fps=25
